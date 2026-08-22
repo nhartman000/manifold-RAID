@@ -1,7 +1,7 @@
 # Manifold RAID — Conversation-Derived Research Chronology
 
 **Coverage window:** 2026-02-22 through 2026-08-22  
-**Repository compilation date:** 2026-08-22
+**Repository compilation/current-model date:** 2026-08-22
 
 ## Purpose
 
@@ -81,7 +81,7 @@ Required seed fields included:
 
 The encoder used two hard gates:
 
-1. **VERIFY** — trajectory admissibility, represented as `tau ∈ Omega(C)`;
+1. **VERIFY** — trajectory admissibility, represented as `tau in Omega(C)`;
 2. **CLASSIFY** — unique trajectory-family resolution `T_G`.
 
 A failed gate produced **no accepted seed**.
@@ -125,6 +125,7 @@ This correction is part of the technical history and should be retained because 
 
 The bounded Manifold RAID prototype reported:
 
+- raw execution traces removed before regeneration in the tested workflow;
 - 4 / 4 successful round trips;
 - zero measured reconstruction drift;
 - aggregate representation ratio `C_r = 2.49x`;
@@ -213,6 +214,7 @@ The submission presented:
 - Manifold RAID as the experimental/reference architecture;
 - compact invariant representation rather than preserved full execution history;
 - hard-gated verification;
+- an admissible-manifold/verification model;
 - bounded preliminary empirical results;
 - falsification criteria;
 - low-resource relevance in memory, energy, and bandwidth-constrained settings.
@@ -237,17 +239,28 @@ This is a useful architectural extension because it applies the same representat
 
 ---
 
-## 2026-07-10 — TCTA reduction-harness relationship
+## 2026-07-10 — TCTA admissible-space relationship
 
-### Assistant-reported analysis requiring source verification
+### Assistant formulation grounded in the user's existing TCTA/ISR line
 
-A July 10 assistant analysis reported additional harness results relating ISR/TCTA admissible-space reduction to:
+The July conversation line explicitly connected:
+
+- ISR persistence without stored prior traces; and
+- TCTA discovery/restriction of admissible trajectories within a bounded problem space.
+
+The assistant formulation summarized the relationship as TCTA discovering admissible trajectories while ISR preserves enough invariant information to regenerate behaviorally equivalent execution without retaining the prior trace.
+
+This is relevant antecedent material for the later dynamic admissible-transform model, but it remains labeled as assistant formulation rather than being presented as a verbatim user statement.
+
+### Assistant-reported reduction analysis requiring source verification
+
+A July 10 assistant analysis also reported additional harness results relating ISR/TCTA admissible-space reduction to:
 
 - `SORTED_SEARCH` — reported reduction from 343 candidate paths to 4, with `R = 85.8x`, fidelity 1.000, mean 3.2 steps;
 - `PREFIX_ACCUMULATION` — reported reduction from 36 to 1, with `R = 36x`, fidelity 1.000;
 - degradation under H2 ablations.
 
-These values are preserved here because they appeared in the Manifold RAID conversation line, but they are **not promoted to canonical Manifold RAID benchmark claims unless the underlying harness/output artifact is independently located and verified**.
+These values are preserved because they appeared in the Manifold RAID conversation line, but they are **not promoted to canonical Manifold RAID benchmark claims unless the underlying harness/output artifact is independently located and verified**.
 
 ---
 
@@ -259,13 +272,12 @@ The Manifold RAID/ISR work was later grouped with TCTA, HDRP, MG8, waveform/phys
 
 > computation emerges from constrained state representations evolving through geometry.
 
-Proposed umbrella terminology included “Geometric State Computing,” “Geometric Information Processing,” and “Constraint-Based Physical Computation.”
-
 For Manifold RAID specifically, the useful relationship is:
 
-- **TCTA** — formal state/trajectory/admissibility language;
+- **TCTA** — formal state/transform/trajectory admissibility language;
 - **HDRP** — present/previous register and trajectory-delta reconstruction primitive;
-- **Manifold RAID / ISR** — compact representation + procedural regeneration + closure verification;
+- **OGSI** — trajectory/transform-family discrimination;
+- **Manifold RAID / ISR** — compact invariant representation + procedural regeneration + closure verification;
 - **MG8 family** — bounded representation, gating, orchestration, and trace interfaces.
 
 These are related layers, not interchangeable names.
@@ -285,13 +297,76 @@ The proposal explicitly did **not** treat those software results as proof of unr
 
 ---
 
+## 2026-08-22 — Dynamic admissible-trajectory model made explicit
+
+### User-originated refinement
+
+The user explicitly refined the current Manifold RAID architecture as:
+
+> dynamic trajectory generation constrained to admissible transforms instead of saving the execution trace history.
+
+This makes the persistent/runtime distinction explicit:
+
+- **persist:** invariant state and the rules/constraints defining admissible future transforms;
+- **generate:** the execution trajectory dynamically from the current state;
+- **verify:** each transition and terminal closure/equivalence condition;
+- **optionally emit:** a runtime trace for audit/evidence;
+- **do not require:** that runtime trace as the substrate for future reconstruction.
+
+The current transition set is formalized as:
+
+```text
+A_t = { T in T_G | (SR_t, T, T(SR_t)) satisfies C_t }
+```
+
+and the generated trajectory as:
+
+```text
+SR_0 --T_0--> SR_1 --T_1--> ... --T_n--> SR_{n+1}
+```
+
+with every `T_t` required to belong to the current admissible set.
+
+### Relationship to earlier work
+
+The exact consolidated formulation is dated August 22 and is **not backdated**.
+
+Its components, however, are traceable to the earlier line:
+
+- April metadata-first/on-demand reconstruction instead of complete artifact persistence;
+- July ISR representation replacing historical execution as the primary computational artifact;
+- July raw-trace removal followed by verified regeneration;
+- July TCTA admissible trajectory/constraint reasoning;
+- July HDRP momentum-based procedural synthesis;
+- July trajectory-family/classification and closure verification.
+
+The current formulation combines those components into a more explicit forward-generation architecture.
+
+### Current reference implementation
+
+A new repository reference model generates an admissible path without accepting a historical path as input. Its synthetic reference test compares:
+
+```text
+historical reference: 0 -> 1 -> 2 -> 3 -> 4 -> 5 -> 6
+generated path:       0 -> 2 -> 4 -> 6
+```
+
+The historical reference is used only after generation for comparison. The generator receives the invariant entry state, transform vocabulary, admissibility predicate, selector, closure predicate, and step bound.
+
+This is a software proof of the current architecture's **path-generation semantics**. It is not a general empirical proof that arbitrary computational classes admit alternate equivalent trajectories.
+
+---
+
 ## Current canonical interpretation
 
-Across the recovered six-month history, the stable concept is:
+Across the recovered six-month history, the concept now resolves into five stages:
 
 1. **April:** persist reconstructive metadata/geometry rather than complete files; regenerate on demand; distribute/stripe representations.
-2. **July prototype:** enforce admissibility/classification before accepting a seed; reconstruct procedurally using bounded state/trajectory information; verify terminal closure.
-3. **July research framing:** define the object as an Invariant State Representation and ask which computational classes admit sufficient representations.
-4. **Low-resource implication:** if a sufficient representation is smaller/cheaper to preserve than full state/history, memory/bandwidth/energy savings may emerge—but efficiency is an empirical consequence, not an axiom.
+2. **July prototype:** verify/classify observed traces, derive compact invariant seed blocks, remove raw trace, regenerate procedurally, and verify closure.
+3. **July research framing:** define the persistent object as an Invariant State Representation and investigate which computational classes admit sufficient representations.
+4. **July constrained-generation foundation:** relate ISR regeneration to TCTA admissible trajectory space, HDRP local trajectory direction, and trajectory-family constraints.
+5. **August current model:** persist invariant state + admissible-transform structure and dynamically generate `tau_hat` at runtime instead of preserving `tau_history`.
 
-The repository should preserve all four stages rather than collapsing the origin story into the final terminology.
+The current research target is therefore:
+
+> **representation sufficiency + admissible transform generation + terminal verification**, with the historical execution trace treated as optional evidence rather than required persistent computation.
