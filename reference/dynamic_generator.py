@@ -63,15 +63,10 @@ class GenerationResult(Generic[State]):
         return self.states[-1]
 
 
-Admissibility = Callable[[State, Transform[State], State], bool]
-Closure = Callable[[State], bool]
-Selector = Callable[[State | None, State, Sequence[Candidate[State]]], Candidate[State]]
-
-
 def admissible_candidates(
     state: State,
     transforms: Iterable[Transform[State]],
-    admissibility: Admissibility[State],
+    admissibility: Callable[[State, Transform[State], State], bool],
 ) -> tuple[Candidate[State], ...]:
     """Evaluate the constraint mask and return every admissible continuation."""
 
@@ -126,9 +121,11 @@ def generate_trajectory(
     *,
     initial_state: State,
     transforms: Iterable[Transform[State]],
-    admissibility: Admissibility[State],
-    closure: Closure[State],
-    selector: Selector[State] = deterministic_id_selector,
+    admissibility: Callable[[State, Transform[State], State], bool],
+    closure: Callable[[State], bool],
+    selector: Callable[
+        [State | None, State, Sequence[Candidate[State]]], Candidate[State]
+    ] = deterministic_id_selector,
     max_steps: int = 128,
 ) -> GenerationResult[State]:
     """Generate an admissible trajectory without a stored historical trace.
@@ -179,6 +176,4 @@ def generate_trajectory(
         if closure(current):
             return GenerationResult(states=tuple(states), transitions=tuple(evidence))
 
-    raise GenerationFailure(
-        f"closure not reached within max_steps={max_steps}"
-    )
+    raise GenerationFailure(f"closure not reached within max_steps={max_steps}")
