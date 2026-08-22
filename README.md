@@ -2,107 +2,172 @@
 
 **Manifold RAID — Redundant Array of Invariant Data**
 
-Manifold RAID is an experimental architecture for **invariant state representation (ISR)** and deterministic procedural reconstruction. Its purpose is not conventional compression and not archival replay of execution history. The research question is whether a bounded system can preserve a compact representation sufficient to reconstruct behaviorally equivalent state while maintaining explicit admissibility and closure checks.
+Manifold RAID is an experimental architecture for **Invariant State Representation (ISR)** and **dynamic admissible-trajectory generation**. Its current design does **not** treat a saved execution trace as the primary computational artifact. Instead, it persists the invariant state, admissibility constraints, transform-family information, and closure/verification conditions needed to generate a valid execution trajectory when execution is required.
 
-## Concept lineage
+The central question is:
 
-The recovered six-month research history begins on **2026-04-25** with a metadata-first / file-less persistence concept: retain compact reconstructive metadata and geometry, distribute it using RAID-like redundancy/striping, and regenerate the conventional artifact on demand rather than treating the complete file as the primary stored object.
+> Can a bounded computational system preserve a compact invariant representation of what states and transforms are admissible, then dynamically generate a behaviorally equivalent trajectory at runtime without retaining the historical execution trace?
 
-By **2026-07-08**, that direction had become a bounded encoder/decoder prototype with hard VERIFY/CLASSIFY gates, JSON seed blocks, HDRP-informed procedural reconstruction, A2/A3/A4 constraints, closure verification, negative-path rejection, and measured round-trip results.
+## Current canonical principle
 
-During **2026-07-08 through 2026-07-10**, the work was formalized as an **Invariant State Representation** research program and Manifold RAID was expanded as **Redundant Array of Invariant Data**. The later ISR terminology sharpens the earlier reconstruction concept; it does not replace its chronology.
+The persistent object is **not** the historical trajectory `tau_history`.
 
-## Core thesis
+The persistent object is an invariant reconstruction record containing enough information to determine the admissible transform space from a current state and verify an acceptable terminal outcome.
 
-Instead of storing a complete execution history, Manifold RAID stores a compact invariant representation of the state needed for reconstruction. The representation is accepted only when the source trajectory passes hard verification and classification gates.
-
-The reference architecture is:
+At runtime, Manifold RAID generates:
 
 ```text
-source state / trajectory
-        |
-        v
-  VERIFY: tau ∈ Omega(C)
-        |
-        v
-  CLASSIFY: unique trajectory family T_G
-        |
-        v
- invariant seed representation
-        |
-        v
- JSON sidecar / invariant store
-        |
-        v
- HDRP dual-register momentum + procedural decoder
-        |
-        v
- reconstructed execution/state
-        |
-        v
- closure verification / closure_hash
+SR_t
+  |
+  v
+candidate transforms
+  |
+  v
+ADMISSIBILITY MASK / CONSTRAINT GATE
+  |
+  v
+A_t = { T | (SR_t, T, T(SR_t)) satisfies C and family constraints }
+  |
+  v
+HDRP / OGSI / policy ranking or branch preservation
+  |
+  v
+select admissible T_t
+  |
+  v
+SR_{t+1} = T_t(SR_t)
+  |
+  +---- repeat until declared exit / closure condition
 ```
 
-Failed verification or ambiguous trajectory-family classification produces **no accepted invariant seed**.
+The generated trajectory
 
-## Canonical seed fields
+`tau_hat = (SR_0, T_0, SR_1, T_1, ..., SR_n)`
 
-The current reference representation includes:
+is a **derived runtime artifact**. It may be emitted temporarily for verification/audit, but it is not required to be retained as the reconstruction substrate.
 
-- `seed_coordinates` / initial state vector `s0`
-- `tau_q_prefix` — bounded trajectory prefix
-- `trajectory_family` — resolved family `T_G`
-- `container_radius` / `R_c`
-- verification metadata such as `rho`, margin, and lock state where applicable
-- `closure_hash` — SHA-256 of the terminal reconstruction fingerprint
+## What Manifold RAID persists
 
-The historical July prototype stored these in:
+The current canonical record is centered on:
 
-`manifold_raid_store/seed_blocks.json`
+- invariant/seed state `SR_0` or invariant projection `Gamma(SR)`;
+- state-domain and container constraints `C`;
+- admissible transform vocabulary or transform-set identity;
+- trajectory-family constraints `T_G` where a family has been resolved;
+- transform admissibility policy / constraint mask;
+- HDRP present/previous-register initialization where required;
+- branch/tie-breaking policy where more than one continuation remains admissible;
+- terminal exit condition;
+- behavioral-equivalence relation;
+- `closure_hash` or another machine-checkable closure condition;
+- version/hash identities for the rules used to regenerate the path.
 
-## Decoder
+## What Manifold RAID does not need to persist
 
-The procedural reconstruction line uses the Hartman Dual-Register Predictor (HDRP) concept as a momentum/state-transition primitive, including prior/current state context and bounded procedural traversal.
+The current architecture does **not require persistence of**:
 
-The historical reference implementation used an **HDRP Momentum Walk** and A2/A3/A4 verification stages. The recovered engineering record preserves the correction that A2 container validity is evaluated at **orbit completion**, not as naive per-step containment.
+- the complete historical state sequence;
+- the complete historical transform sequence;
+- a QSON or equivalent execution log as an input to reconstruction;
+- an exact replay of the original internal path;
+- the original raw trace after a sufficient invariant representation has been established and independently verified.
 
-## Preliminary bounded results
+A runtime execution trace can still be generated for evidence, debugging, audit, or CIIU/QSON interoperability. That trace is **output evidence**, not the source of future reconstruction.
 
-Controlled prototype testing previously reported:
+## Dynamic admissible-transform formulation
 
-- **4 / 4** byte-identical round trips
-- **0.000** measured drift on the bounded test set
-- aggregate representation ratio **C_r = 2.49×**
-- three larger trace ratios of approximately **3.10–3.40×**
-- a small exemplar ratio of **0.23×**, demonstrating that Manifold RAID is not universally compressive
-- negative `bad_loop.g8son` rejection with no accepted seed
-- unchanged SHA-256 integrity for protected core files during the test sequence
-- `test_manifold_raid.py` exit status `0`
+For current state `SR_t`, constraint set `C`, and applicable transform family `T_G`, define the admissible continuation set:
 
-These are **preliminary bounded prototype results**, not a general proof of ISR sufficiency, universal losslessness, or hardware performance.
+```text
+A(SR_t, C, T_G)
+  = { T in T_G | (SR_t, T, T(SR_t)) satisfies C }
+```
 
-## Research framing
+A constraint mask may further remove transforms that violate state, domain, policy, topology, resource, or closure-preservation requirements.
 
-The contribution under investigation is **representation sufficiency and invariant reconstruction**, not compression as an objective. The formal research line asks which computational classes admit discoverable ISRs, what minimum fidelity `F_min` is required, which classes do not admit useful ISRs, and whether discovery/regeneration/verification overhead preserves a resource advantage.
+Then:
 
-On **2026-07-10**, this research line was submitted to DARPA MXO under the Low Resource Computing RFI as:
+```text
+T_t = Select(A_t, HDRP_delta, OGSI_family_information, generation_policy)
+SR_{t+1} = T_t(SR_t)
+```
+
+where the HDRP local trajectory delta is based on present/previous state context:
+
+`Delta_t = R_0 - R_-1`
+
+Selection does not need to pretend that only one continuation always exists. If multiple transforms remain admissible, Manifold RAID may preserve the branch set until later state information resolves it. A deterministic replay claim is appropriate only where the record, selection policy, and tie-breaking rules actually determine a unique path.
+
+## Relationship to the historical July prototype
+
+The recovered concept line begins on **2026-04-25** with metadata-first/file-less persistence and on-demand reconstruction rather than conventional file storage.
+
+By **2026-07-08**, the working prototype used:
+
+```text
+raw .g8son trace
+    -> VERIFY
+    -> CLASSIFY
+    -> seed block / JSON sidecar
+    -> HDRP Momentum Walk
+    -> closure verification
+```
+
+That prototype proved an important intermediate step: a verified compact representation could support regeneration after the raw trace was removed in the bounded test line.
+
+The **current architecture generalizes the idea one step further**:
+
+> the seed is no longer conceptually a compressed history of the old path; it is a compact description of the invariant state and the admissible transform space from which a new valid path can be generated dynamically.
+
+The historical `tau_q_prefix` remains part of the provenance record and may still be used as an optional anchor in a particular profile, but a saved historical prefix is **not a universal requirement of the current architecture**.
+
+## Demonstrated bounded results
+
+The recovered Manifold RAID prototype line demonstrated, for its bounded tests:
+
+- raw execution traces were removed before regeneration in the tested workflow;
+- **4 / 4** verification/round-trip passes;
+- **0.000** measured reconstruction drift under the declared test relation;
+- aggregate representation ratio **C_r = 2.49x**;
+- three larger traces at approximately **3.10–3.40x** representation ratio;
+- one small exemplar at **0.23x**, showing the method is not universally compressive;
+- negative `bad_loop.g8son` rejection with **no accepted seed**;
+- protected core artifacts remained byte-identical under SHA-256 checks;
+- `test_manifold_raid.py` exited `0`.
+
+These results establish **bounded regeneration and verification behavior in the historical prototype**. They do **not** yet prove that every dynamically generated admissible trajectory can replace an original path for arbitrary computation, nor that every computational class admits a useful ISR.
+
+## Current research claim
+
+The current Manifold RAID hypothesis is more precise than “invariant compression”:
+
+> For identifiable computational classes, persistent execution may be represented by invariant state plus admissible-transform constraints, allowing execution trajectories to be generated dynamically and verified when needed instead of preserving complete execution history.
+
+The primary object of study is therefore **representation sufficiency + admissible trajectory generation + verification**.
+
+Compression, storage reduction, energy reduction, and bandwidth reduction are possible consequences to measure, not axioms of the architecture.
+
+## DARPA research baseline
+
+On **2026-07-10**, the ISR/Manifold RAID research line was submitted to DARPA MXO under the Low Resource Computing RFI as:
 
 **Invariant State Representations for Procedural Regeneration: A New Computational Abstraction for Low-Resource Autonomous Computing**
 
+The current dynamic-trajectory formulation remains consistent with that premise: execution history becomes a derived artifact rather than the primary stored artifact.
+
 ## Repository status
 
-This repository is the canonical Manifold RAID project/provenance line. It is intentionally **private** at this stage. It documents development chronology without creating a new public-disclosure event through this repository.
-
-The repository does not incorporate unpublished third-party research, NDA material, or later cross-architecture synthesis.
+This repository is the canonical Manifold RAID project/provenance line and remains intentionally **private**. It preserves the historical prototype separately from the current architectural formulation and does not incorporate unpublished third-party research, NDA material, or later cross-architecture synthesis.
 
 ## Documentation
 
-- [`docs/CONVERSATION_CHRONOLOGY_2026.md`](docs/CONVERSATION_CHRONOLOGY_2026.md) — recovered six-month concept chronology with user/assistant distinction
-- [`docs/RESEARCH_HYPOTHESIS.md`](docs/RESEARCH_HYPOTHESIS.md) — formal ISR hypothesis, research questions, and falsification criteria
-- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — encoder/store/decoder/closure architecture
+- [`docs/CURRENT_DYNAMIC_TRAJECTORY_MODEL.md`](docs/CURRENT_DYNAMIC_TRAJECTORY_MODEL.md) — current canonical ISR + admissible-transform generation model
+- [`docs/DEMONSTRATED_VS_HYPOTHESIS.md`](docs/DEMONSTRATED_VS_HYPOTHESIS.md) — what is experimentally demonstrated versus current extension/hypothesis
+- [`docs/CONVERSATION_CHRONOLOGY_2026.md`](docs/CONVERSATION_CHRONOLOGY_2026.md) — recovered concept chronology
+- [`docs/RESEARCH_HYPOTHESIS.md`](docs/RESEARCH_HYPOTHESIS.md) — current research hypothesis and falsification criteria
+- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — current architecture and historical prototype mapping
 - [`docs/EXPERIMENTAL_RESULTS.md`](docs/EXPERIMENTAL_RESULTS.md) — bounded benchmark and integrity record
 - [`docs/DARPA_MXO_LOW_RESOURCE_RFI_2026-07-10.md`](docs/DARPA_MXO_LOW_RESOURCE_RFI_2026-07-10.md) — dated MXO research baseline
-- [`docs/RELATIONSHIP_TO_TCTA_HDRP_MG8.md`](docs/RELATIONSHIP_TO_TCTA_HDRP_MG8.md) — architectural relationship without collapsing distinct systems
-- [`docs/PROVENANCE.md`](docs/PROVENANCE.md) — chronology, evidence hierarchy, and IP/collaboration boundary
-- [`docs/ARTIFACT_INDEX.md`](docs/ARTIFACT_INDEX.md) — recovered poster/proposal artifact index
-- [`spec/seed_block.schema.json`](spec/seed_block.schema.json) — reference seed-block schema
+- [`docs/RELATIONSHIP_TO_TCTA_HDRP_MG8.md`](docs/RELATIONSHIP_TO_TCTA_HDRP_MG8.md) — relation to TCTA, HDRP, OGSI, and MG8
+- [`docs/PROVENANCE.md`](docs/PROVENANCE.md) — evidence and IP/collaboration boundary
+- [`spec/seed_block.schema.json`](spec/seed_block.schema.json) — current invariant reconstruction record schema
