@@ -2,11 +2,15 @@
 
 ## Purpose
 
-This document prevents the historical bounded prototype results from being overstated as proof of the current generalized architecture.
+This document separates three evidence tiers:
+
+1. the recovered July 2026 bounded Manifold RAID prototype;
+2. the current August 22 trace-independent reference implementation and CI tests;
+3. broader research hypotheses that remain unproven.
 
 ## A. Demonstrated in the recovered bounded prototype
 
-The July 2026 Manifold RAID test/artifact line reports the following as observed behavior within the tested cases:
+The July 2026 Manifold RAID test/artifact line reports the following as observed behavior within the tested cases.
 
 ### Representation and regeneration
 
@@ -39,9 +43,9 @@ The 0.23x small case is evidence that the architecture is not universally compre
 - the recovered test record reports protected source artifacts unchanged under SHA-256 before/after checks;
 - `test_manifold_raid.py` exited successfully.
 
-## B. Supported architectural inference
+## B. Supported inference from the historical prototype
 
-The demonstrated results support this narrower inference:
+The recovered results support this narrower inference:
 
 > For the tested bounded cases, a verified compact representation retained enough information to regenerate the required result after the raw trace was removed.
 
@@ -50,19 +54,58 @@ They also support the operational distinction between:
 - source/history used to discover or validate a representation; and
 - the representation used later for regeneration.
 
-## C. Current architecture extension
+## C. Current August 22 reference implementation — tested
 
-The current Manifold RAID model generalizes that demonstrated behavior to:
+The repository now contains `reference/dynamic_generator.py`, a trace-independent generator whose API accepts:
 
-> persist invariant state plus admissible-transform structure, then generate a valid trajectory dynamically rather than replay or store historical execution history.
+- `initial_state`;
+- a transform vocabulary;
+- an admissibility predicate / constraint mask;
+- a branch/selection function;
+- a terminal closure predicate;
+- a maximum generation bound.
 
-This extension is structurally consistent with the ISR premise and TCTA admissible-transform framework, but the original four-case benchmark did not by itself prove every part of this generalized model.
+It **does not accept historical execution history as an input**.
 
-## D. Not yet generally demonstrated
+GitHub Actions run `32564358980` compiled the reference model under Python 3.12 and executed the no-history test suite successfully.
+
+**Result: 5 / 5 tests passed.**
+
+The passing tests establish the behavior of this reference implementation for its synthetic bounded cases:
+
+1. `test_generates_path_without_historical_trace_input` — generates `0 -> 2 -> 4 -> 6` from state, transforms, constraints, selector, and closure only;
+2. `test_generated_path_can_differ_from_reference_history` — the generated `0 -> 2 -> 4 -> 6` path reaches the same terminal state as a comparison history `0 -> 1 -> 2 -> 3 -> 4 -> 5 -> 6`, while that history is never supplied to the generator;
+3. `test_non_admissible_transforms_are_never_executed` — constraint-masked transforms are excluded from the generated path;
+4. `test_fails_closed_when_no_admissible_continuation_exists` — generation rejects a state with no valid continuation;
+5. `test_step_bound_prevents_unbounded_generation` — generation fails when closure cannot be reached within the declared bound.
+
+This is now a **tested software proof-of-architecture** for the distinction between historical replay and dynamic admissible-path generation.
+
+It is not a general proof about arbitrary real computational classes.
+
+## D. Current architecture extension
+
+The current Manifold RAID model is:
+
+> persist invariant state plus admissible-transform structure, then dynamically generate and verify an execution trajectory rather than persist historical execution as the reconstruction substrate.
+
+For current state `SR_t`:
+
+```text
+A_t = { T in T_G | (SR_t, T, T(SR_t)) satisfies C_t }
+```
+
+and only `T in A_t` may be executed.
+
+The current reference implementation demonstrates this mechanism on bounded synthetic state spaces. The historical prototype separately demonstrates trace removal plus verified regeneration on the recovered four-case benchmark.
+
+Together these are stronger evidence than either alone, but they still do not establish universality.
+
+## E. Not yet generally demonstrated
 
 The following remain research hypotheses or future validation targets:
 
-- generating a trajectory that is materially different from the historical path while preserving the declared behavioral-equivalence relation;
+- dynamically generating materially different admissible trajectories across non-synthetic computational workloads while preserving the declared behavioral-equivalence relation;
 - proving closure reachability from local admissibility constraints alone;
 - discovering minimal sufficient invariant records automatically across broad computational classes;
 - proving that all admissible branch ambiguity can be resolved without retaining significant history;
@@ -73,19 +116,19 @@ The following remain research hypotheses or future validation targets:
 - hardware fault tolerance/resilience as an established property;
 - global optimality of HDRP/OGSI transform selection.
 
-## E. Current test that would materially strengthen the claim
+## F. Next empirical validation
 
-A direct test of the new architecture should:
+The next stronger experiment should apply the current no-history generator semantics to a non-synthetic bounded workload:
 
-1. define a transform vocabulary `T_G` and constraint set `C`;
+1. define a real transform vocabulary `T_G` and constraint set `C`;
 2. persist only the current invariant reconstruction record—not a historical path;
-3. delete/exclude the historical execution trace from the generator;
+3. delete/exclude the historical execution trace from generation;
 4. generate candidate transforms dynamically at each state;
 5. prune all non-admissible transforms;
 6. preserve or resolve legitimate branches under a declared policy;
 7. reach terminal closure;
 8. verify behavioral equivalence;
-9. compare generated `tau_hat` against historical `tau_history` to determine whether a different path can satisfy the same terminal relation;
-10. measure representation size plus generation/verification resource cost.
+9. compare generated `tau_hat` against `tau_history` only after the run;
+10. measure representation size plus discovery/generation/verification resource cost.
 
-A successful alternate-path case would directly demonstrate the distinction between **historical replay** and **admissible dynamic trajectory generation**.
+A successful non-synthetic alternate-path case would materially strengthen the claim that **admissible dynamic trajectory generation**, rather than trace replay, is sufficient for a useful computational class.
