@@ -1,74 +1,187 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://americanmilestone.example/manifold-raid/seed_block.schema.json",
-  "title": "Manifold RAID Invariant Seed Block",
-  "description": "Reference schema for a bounded Manifold RAID invariant state representation. This schema captures the recovered July 2026 prototype fields without asserting universal sufficiency.",
+  "$id": "urn:american-milestone:manifold-raid:invariant-reconstruction-record:0.2",
+  "title": "Manifold RAID Invariant Reconstruction Record",
+  "description": "Current reference schema for Manifold RAID ISR persistence. The record stores invariant state, admissible-transform structure, generation policy, and closure verification material. A historical execution trace is not required.",
   "type": "object",
   "additionalProperties": false,
   "required": [
-    "trace_id",
-    "seed_coordinates",
-    "tau_q_prefix",
-    "trajectory_family",
-    "container_radius",
-    "closure_hash"
+    "record_version",
+    "invariant_state",
+    "transform_space",
+    "admissibility",
+    "generation_policy",
+    "closure"
   ],
   "properties": {
-    "trace_id": {
+    "record_version": {
+      "type": "string",
+      "const": "0.2"
+    },
+    "record_id": {
       "type": "string",
       "minLength": 1
     },
-    "seed_coordinates": {
-      "type": "array",
-      "description": "Entry-state coordinate vector. The historical reference prototype used an 8-dimensional project-state mirror.",
-      "minItems": 1,
-      "items": { "type": "number" }
-    },
-    "tau_q_prefix": {
-      "type": "string",
-      "minLength": 1,
-      "description": "Bounded/quantized entry trajectory prefix."
-    },
-    "trajectory_family": {
-      "type": "string",
-      "minLength": 1,
-      "description": "Resolved trajectory family T_G."
-    },
-    "container_radius": {
-      "type": "number",
-      "exclusiveMinimum": 0,
-      "description": "Bounded container radius R_c."
-    },
-    "rho": {
-      "type": ["number", "null"],
-      "description": "Optional verification/classification metric retained by the historical prototype."
-    },
-    "margin": {
-      "type": ["number", "null"],
-      "description": "Optional classification/lock margin."
-    },
-    "lock": {
-      "oneOf": [
-        { "type": "boolean" },
-        { "type": "string" },
-        { "type": "null" }
-      ],
-      "description": "Optional trajectory-family lock metadata."
-    },
-    "closure_hash": {
-      "type": "string",
-      "pattern": "^[A-Fa-f0-9]{64}$",
-      "description": "SHA-256 terminal reconstruction fingerprint."
-    },
-    "verification": {
+    "invariant_state": {
       "type": "object",
       "additionalProperties": false,
+      "required": ["seed_coordinates"],
       "properties": {
-        "admissible": { "type": "boolean" },
-        "classified": { "type": "boolean" },
-        "verifier_version": { "type": "string" },
-        "equivalence_relation": { "type": "string" }
+        "seed_coordinates": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "number" },
+          "description": "Entry/invariant coordinate vector. The historical reference prototype used an 8-dimensional project-state mirror."
+        },
+        "domain_id": {
+          "type": ["string", "null"]
+        },
+        "invariant_projection": {
+          "type": ["string", "null"],
+          "description": "Optional identifier/hash for Gamma(SR) or another invariant projection."
+        },
+        "container_radius": {
+          "type": ["number", "null"],
+          "exclusiveMinimum": 0,
+          "description": "Optional bounded container radius R_c."
+        },
+        "prior_register": {
+          "type": ["array", "null"],
+          "items": { "type": "number" },
+          "description": "Optional HDRP R_-1 initialization."
+        },
+        "present_register": {
+          "type": ["array", "null"],
+          "items": { "type": "number" },
+          "description": "Optional HDRP R_0 initialization."
+        }
       }
+    },
+    "transform_space": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["transform_set_id"],
+      "properties": {
+        "transform_set_id": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Identity/hash/version of the transform vocabulary or generator contract."
+        },
+        "trajectory_family": {
+          "type": ["string", "null"],
+          "description": "Optional resolved transform/trajectory family T_G."
+        },
+        "family_identity_hash": {
+          "type": ["string", "null"]
+        },
+        "generator_contract": {
+          "type": ["string", "null"],
+          "description": "Optional schema or bounded generator identifier when transforms are generated rather than enumerated."
+        }
+      }
+    },
+    "admissibility": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["constraint_set_id", "mask_policy_id"],
+      "properties": {
+        "constraint_set_id": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Identity/hash/version of the active constraint set C."
+        },
+        "mask_policy_id": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Identity/hash/version of M_C used to admit or prune transforms."
+        },
+        "require_non_identity": {
+          "type": "boolean",
+          "default": false
+        },
+        "require_closure_reachability": {
+          "type": "boolean",
+          "default": false,
+          "description": "When true, locally admissible transforms must also satisfy the profile's declared bounded closure-reachability rule."
+        },
+        "resource_budget": {
+          "type": ["object", "null"],
+          "additionalProperties": true
+        }
+      }
+    },
+    "generation_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["branch_policy"],
+      "properties": {
+        "branch_policy": {
+          "type": "string",
+          "enum": ["preserve", "rank", "deterministic_tiebreak", "profile_defined"]
+        },
+        "selection_policy_id": {
+          "type": ["string", "null"],
+          "description": "Identity/version of the selection/ranking policy."
+        },
+        "use_hdrp_delta": {
+          "type": "boolean",
+          "default": false
+        },
+        "use_ogsi_family_information": {
+          "type": "boolean",
+          "default": false
+        },
+        "deterministic_tiebreak_id": {
+          "type": ["string", "null"]
+        }
+      }
+    },
+    "closure": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["equivalence_relation", "exit_condition"],
+      "properties": {
+        "equivalence_relation": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Machine-checkable relation defining acceptable reconstructed behavior."
+        },
+        "exit_condition": {
+          "type": "string",
+          "minLength": 1
+        },
+        "closure_hash": {
+          "type": ["string", "null"],
+          "pattern": "^[A-Fa-f0-9]{64}$",
+          "description": "Optional SHA-256 terminal fingerprint where exact closure hashing is part of the profile."
+        },
+        "verifier_id": {
+          "type": ["string", "null"]
+        }
+      }
+    },
+    "historical_profile": {
+      "type": ["object", "null"],
+      "description": "Optional compatibility/provenance fields from the July 2026 trace-to-seed prototype. These are not required by the current general architecture.",
+      "additionalProperties": false,
+      "properties": {
+        "trace_id": { "type": ["string", "null"] },
+        "tau_q_prefix": { "type": ["string", "null"] },
+        "rho": { "type": ["number", "null"] },
+        "margin": { "type": ["number", "null"] },
+        "lock": {
+          "oneOf": [
+            { "type": "boolean" },
+            { "type": "string" },
+            { "type": "null" }
+          ]
+        }
+      }
+    },
+    "provenance": {
+      "type": ["object", "null"],
+      "additionalProperties": true,
+      "description": "Optional evidence/source metadata. Provenance is not execution history and is not required for runtime path generation."
     }
   }
 }
