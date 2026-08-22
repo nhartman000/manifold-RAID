@@ -1,0 +1,19 @@
+name: Manifold RAID Reference Model
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  reference-model:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile reference model
+        run: python -m py_compile reference/dynamic_generator.py tests/test_dynamic_generator.py
+      - name: Run no-history dynamic trajectory tests
+        run: python -m unittest discover -s tests -v
