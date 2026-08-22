@@ -123,7 +123,9 @@ The historical `tau_q_prefix` remains part of the provenance record and may stil
 
 ## Demonstrated bounded results
 
-The recovered Manifold RAID prototype line demonstrated, for its bounded tests:
+### Historical July prototype
+
+Controlled prototype testing previously reported:
 
 - raw execution traces were removed before regeneration in the tested workflow;
 - **4 / 4** verification/round-trip passes;
@@ -135,9 +137,21 @@ The recovered Manifold RAID prototype line demonstrated, for its bounded tests:
 - protected core artifacts remained byte-identical under SHA-256 checks;
 - `test_manifold_raid.py` exited `0`.
 
-These results establish **bounded regeneration and verification behavior in the historical prototype**. They do **not** yet prove that every dynamically generated admissible trajectory can replace an original path for arbitrary computation, nor that every computational class admits a useful ISR.
+### Current trace-independent reference model
 
-## Current research claim
+The repository now includes `reference/dynamic_generator.py`. GitHub Actions compiles it under Python 3.12 and the current no-history suite passes **5 / 5 tests**.
+
+The passing reference tests demonstrate, on bounded synthetic state spaces:
+
+- trajectory generation without historical trace input;
+- generation of `0 -> 2 -> 4 -> 6` while a different comparison history `0 -> 1 -> 2 -> 3 -> 4 -> 5 -> 6` is never supplied to the generator;
+- non-admissible transforms are never executed;
+- an empty admissible set fails closed;
+- generation cannot exceed the declared step bound.
+
+This is a tested software proof of the **current path-generation semantics**, not a general proof that arbitrary computational classes admit alternate behaviorally equivalent trajectories.
+
+## Research framing
 
 The current Manifold RAID hypothesis is more precise than “invariant compression”:
 
@@ -162,11 +176,11 @@ This repository is the canonical Manifold RAID project/provenance line and remai
 ## Documentation
 
 - [`docs/CURRENT_DYNAMIC_TRAJECTORY_MODEL.md`](docs/CURRENT_DYNAMIC_TRAJECTORY_MODEL.md) — current canonical ISR + admissible-transform generation model
-- [`docs/DEMONSTRATED_VS_HYPOTHESIS.md`](docs/DEMONSTRATED_VS_HYPOTHESIS.md) — what is experimentally demonstrated versus current extension/hypothesis
+- [`docs/DEMONSTRATED_VS_HYPOTHESIS.md`](docs/DEMONSTRATED_VS_HYPOTHESIS.md) — historical evidence, current passing reference tests, and remaining hypotheses
 - [`docs/CONVERSATION_CHRONOLOGY_2026.md`](docs/CONVERSATION_CHRONOLOGY_2026.md) — recovered concept chronology
 - [`docs/RESEARCH_HYPOTHESIS.md`](docs/RESEARCH_HYPOTHESIS.md) — current research hypothesis and falsification criteria
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — current architecture and historical prototype mapping
-- [`docs/EXPERIMENTAL_RESULTS.md`](docs/EXPERIMENTAL_RESULTS.md) — bounded benchmark and integrity record
+- [`docs/EXPERIMENTAL_RESULTS.md`](docs/EXPERIMENTAL_RESULTS.md) — bounded historical benchmark and integrity record
 - [`docs/DARPA_MXO_LOW_RESOURCE_RFI_2026-07-10.md`](docs/DARPA_MXO_LOW_RESOURCE_RFI_2026-07-10.md) — dated MXO research baseline
 - [`docs/RELATIONSHIP_TO_TCTA_HDRP_MG8.md`](docs/RELATIONSHIP_TO_TCTA_HDRP_MG8.md) — relation to TCTA, HDRP, OGSI, and MG8
 - [`docs/PROVENANCE.md`](docs/PROVENANCE.md) — evidence and IP/collaboration boundary
