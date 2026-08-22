@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://americanmilestone.example/manifold-raid/seed_block.schema.json",
+  "title": "Manifold RAID Invariant Seed Block",
+  "description": "Reference schema for a bounded Manifold RAID invariant state representation. This schema captures the recovered July 2026 prototype fields without asserting universal sufficiency.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "trace_id",
+    "seed_coordinates",
+    "tau_q_prefix",
+    "trajectory_family",
+    "container_radius",
+    "closure_hash"
+  ],
+  "properties": {
+    "trace_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "seed_coordinates": {
+      "type": "array",
+      "description": "Entry-state coordinate vector. The historical reference prototype used an 8-dimensional project-state mirror.",
+      "minItems": 1,
+      "items": { "type": "number" }
+    },
+    "tau_q_prefix": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Bounded/quantized entry trajectory prefix."
+    },
+    "trajectory_family": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Resolved trajectory family T_G."
+    },
+    "container_radius": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "description": "Bounded container radius R_c."
+    },
+    "rho": {
+      "type": ["number", "null"],
+      "description": "Optional verification/classification metric retained by the historical prototype."
+    },
+    "margin": {
+      "type": ["number", "null"],
+      "description": "Optional classification/lock margin."
+    },
+    "lock": {
+      "oneOf": [
+        { "type": "boolean" },
+        { "type": "string" },
+        { "type": "null" }
+      ],
+      "description": "Optional trajectory-family lock metadata."
+    },
+    "closure_hash": {
+      "type": "string",
+      "pattern": "^[A-Fa-f0-9]{64}$",
+      "description": "SHA-256 terminal reconstruction fingerprint."
+    },
+    "verification": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "admissible": { "type": "boolean" },
+        "classified": { "type": "boolean" },
+        "verifier_version": { "type": "string" },
+        "equivalence_relation": { "type": "string" }
+      }
+    }
+  }
+}
