@@ -1,0 +1,10 @@
+{
+  "version": "bounded-integer-v1",
+  "initial_state": 0,
+  "target_state": 6,
+  "transform_set_id": "integer-steps-v1",
+  "mask_policy_id": "forward-bounded-v1",
+  "selector_id": "id-order-v1",
+  "closure_id": "target-equality-v1",
+  "max_steps": 8
+}

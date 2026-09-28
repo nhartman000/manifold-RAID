@@ -175,6 +175,12 @@ This repository is the canonical Manifold RAID project/provenance line and remai
 
 ## Documentation
 
+The [bounded public reference summary](PUBLIC_RELEASE.md) describes the additional
+persisted-record integer profile, the reproducible nine-test run, and its limits.
+This research repository remains private; the public release package contains
+only the selected reference files, example, tests, and summary.
+
+
 - [`docs/CURRENT_DYNAMIC_TRAJECTORY_MODEL.md`](docs/CURRENT_DYNAMIC_TRAJECTORY_MODEL.md) — current canonical ISR + admissible-transform generation model
 - [`docs/DEMONSTRATED_VS_HYPOTHESIS.md`](docs/DEMONSTRATED_VS_HYPOTHESIS.md) — historical evidence, current passing reference tests, and remaining hypotheses
 - [`docs/CONVERSATION_CHRONOLOGY_2026.md`](docs/CONVERSATION_CHRONOLOGY_2026.md) — recovered concept chronology
