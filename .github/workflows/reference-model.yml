@@ -14,6 +14,8 @@ jobs:
         with:
           python-version: '3.12'
       - name: Compile reference model
-        run: python -m py_compile reference/dynamic_generator.py tests/test_dynamic_generator.py
+        run: python -m py_compile reference/dynamic_generator.py reference/reconstruction.py reference/run_example.py tests/test_dynamic_generator.py tests/test_reconstruction.py
       - name: Run no-history dynamic trajectory tests
         run: python -m unittest discover -s tests -v
+      - name: Run persisted-record example
+        run: python -m reference.run_example
